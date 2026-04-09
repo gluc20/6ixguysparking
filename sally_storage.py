@@ -31,12 +31,10 @@ st.markdown("""
         padding-top: 20px;
     }
 
-    /* Subheader and Form Labels to White */
     h3, label, .stMarkdown p { color: #FFFFFF !important; }
 
     .stChatMessage { background-color: #1e1e1e !important; color: white !important; border: 1px solid #444; }
     
-    /* Form Inputs */
     input, textarea { 
         background-color: #1e1e1e !important; 
         color: white !important; 
@@ -45,7 +43,6 @@ st.markdown("""
     
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Button Style - Modern White/Black */
     .stButton>button {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -59,8 +56,42 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- HEADER SECTION ---
-# Using a high-quality SVG/Icon style for a Modern Majesty White Lion
 st.markdown("""
     <div class='lion-container'>
         <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C10.5 2 9 3 8 4.5C7 3.5 5.5 3 4 3C2 3 1 4.5 1 6.5C1 10.5 5 14 12 21C19 14 23 10.5 23 6.5C23 4.5 22 3 20 3C18.5 3 17 3.5 16 4.5
+            <path d="M12 3L10 7L6 8L8 11L7 15L12 13L17 15L16 11L18 8L14 7L12 3Z" fill="white"/>
+            <path d="M12 13V17M10 18H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5 10C3 12 3 15 5 18M19 10C21 12 21 15 19 18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div class='fancy-header'>PRESTIGE ENTERPRISES</div>", unsafe_allow_html=True)
+st.write("") 
+
+# --- LEAD CAPTURE FORM ---
+st.subheader("📩 Official Storage Inquiry")
+with st.form("contact_form", clear_on_submit=True):
+    name = st.text_input("Full Name")
+    c_email = st.text_input("Your Email Address")
+    details = st.text_area("What are you looking to store? (Vehicle type, size, etc.)")
+    submitted = st.form_submit_button("SUBMIT TO PRESTIGE ENTERPRISES")
+
+    if submitted:
+        if name and c_email and details:
+            url = "https://formsubmit.co/ajax/greguhl33@gmail.com"
+            payload = {"name": name, "email": c_email, "message": details, "_subject": f"PRESTIGE Lead: {name}"}
+            res = requests.post(url, data=payload)
+            if res.status_code == 200:
+                st.success("Inquiry sent. Greg will contact you shortly.")
+            else:
+                st.error("Error. Please try again.")
+        else:
+            st.warning("Please fill in all fields.")
+
+st.divider()
+
+# --- CHATBOT ---
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Hello! Thank you for choosing Prestige Enterprises. How can we assist you with your storage needs today
