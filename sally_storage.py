@@ -36,7 +36,6 @@ st.markdown("""
     input, textarea { background-color: #1e1e1e !important; color: white !important; border: 1px solid #D4AF37 !important; }
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Button Style */
     .stButton>button {
         background-color: #D4AF37 !important;
         color: black !important;
@@ -49,7 +48,7 @@ st.markdown("""
 # --- HEADER SECTION ---
 st.markdown("<div class='lion-icon'>🦁</div>", unsafe_allow_html=True)
 st.markdown("<div class='fancy-header'>PRESTIGE ENTERPRISES</div>", unsafe_allow_html=True)
-st.write("") # Padding
+st.write("") 
 
 # --- LEAD CAPTURE FORM ---
 st.subheader("📩 Official Storage Inquiry")
@@ -93,4 +92,5 @@ if prompt := st.chat_input("Ask a quick question..."):
     
     for key in storage_info:
         if key in prompt.lower():
-            ans = f"Our storage for {key.upper()} starts at {storage_info
+            price = storage_info[key].split(': ')[1]
+            ans = f
