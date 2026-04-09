@@ -21,7 +21,6 @@ st.markdown("""
     .stButton>button { background-color: #FFFFFF !important; color: #000000 !important; font-weight: bold !important; width: 100%; border-radius: 0px; }
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Geometric SVG Colors */
     .mane-outer { fill: #2a2a2a; stroke: #ffffff; stroke-width: 2; }
     .mane-inner { fill: #1a1a1a; stroke: #cccccc; stroke-width: 1.5; }
     .face { fill: #e0e0e0; }
@@ -30,7 +29,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- HEADER WITH YOUR GEOMETRIC LION ---
+# --- HEADER WITH GEOMETRIC LION ---
 st.markdown("""
     <div class='lion-container'>
         <svg width="250" height="250" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +47,4 @@ st.markdown("""
                 <path class="mane-outer" d="M80 80 L70 140 L110 120 Z" />
                 <path class="mane-outer" d="M50 130 L60 190 L90 160 Z" />
                 <path class="mane-outer" d="M40 190 L60 240 L80 200 Z" />
-                <path class="mane-outer" d="M50 250 L80 290 L90 250 Z" />
-            </g>
-            <g id="inner-mane">
-                <path
+                <path class="mane-outer" d
