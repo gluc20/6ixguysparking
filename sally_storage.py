@@ -11,26 +11,24 @@ st.markdown("""
     .fancy-header {
         color: #FFFFFF; font-family: 'Playfair Display', serif;
         text-transform: uppercase; text-align: center;
-        font-weight: 900; letter-spacing: 8px; font-size: 50px;
+        font-weight: 900; letter-spacing: 8px; font-size: 45px;
         border-bottom: 1px solid #FFFFFF; padding-bottom: 15px; width: 100%;
     }
-    .lion-container { text-align: center; padding-top: 20px; padding-bottom: 10px; }
-    .stChatMessage { background-color: #1e1e1e !important; color: white !important; border: 1px solid #444; }
+    .lion-container { text-align: center; padding-top: 30px; padding-bottom: 10px; }
+    .stChatMessage { background-color: #1e1e1e !important; border: 1px solid #444; }
     input, textarea { background-color: #1e1e1e !important; color: white !important; border: 1px solid #FFFFFF !important; }
-    .stButton>button { background-color: #FFFFFF !important; color: #000000 !important; font-weight: bold !important; width: 100%; }
+    .stButton>button { background-color: #FFFFFF !important; color: #000000 !important; font-weight: bold !important; width: 100%; border-radius: 0px; }
     #MainMenu, footer, header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- HEADER WITH ACTUAL LION HEAD ---
+# --- HEADER WITH MAJESTIC LION ---
 st.markdown("""
     <div class='lion-container'>
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C10 2 8 3 7 5C5 4 3 5 2 7C2 9 3 10 4 11C3 12 2 14 2 16C2 19 5 22 12 22C19 22 22 19 22 16C22 14 21 12 20 11C21 10 22 9 22 7C21 5 19 4 17 5C16 3 14 2 12 2Z" stroke="white" stroke-width="1.5"/>
-            <path d="M9 10C9 10 10 9 12 9C14 9 15 10 15 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M10 13H14L12 16L10 13Z" fill="white"/>
-            <path d="M8 12C8 12 7 13 7 15C7 17 9 18 12 18C15 18 17 17 17 15C17 13 16 12 16 12" stroke="white" stroke-width="1.5"/>
-            <path d="M12 16V18" stroke="white" stroke-width="1.5"/>
+        <svg width="150" height="150" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C10 2 8.5 3 7 4C5 3 3 4 2 6C1 8 1 10 2 12C1 13 1 15 2 17C3 19 5 21 8 22C10 22.5 14 22.5 16 22C19 21 21 19 22 17C23 15 23 13 22 12C23 10 23 8 22 6C21 4 19 3 17 4C15.5 3 14 2 12 2Z" fill="white"/>
+            <path d="M12 7L10 11L8 12L10 13L9 16L12 15L15 16L14 13L16 12L14 11L12 7Z" fill="#121212"/>
+            <path d="M11 18H13M12 15V18" stroke="#121212" stroke-width="0.8"/>
         </svg>
     </div>
     """, unsafe_allow_html=True)
@@ -38,6 +36,7 @@ st.markdown("""
 st.markdown("<div class='fancy-header'>PRESTIGE ENTERPRISES</div>", unsafe_allow_html=True)
 
 # --- FORM ---
+st.write("")
 st.subheader("📩 Official Storage Inquiry")
 with st.form("contact_form", clear_on_submit=True):
     name = st.text_input("Full Name")
