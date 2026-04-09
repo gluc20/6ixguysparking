@@ -104,6 +104,4 @@ for msg in st.session_state.messages:
 if prompt := st.chat_input("Ask a quick question..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.write(prompt)
-    
-    storage_info = {"rv": "RV: $150/mo", "bus": "Bus: $200/mo", "boat
+        st.
