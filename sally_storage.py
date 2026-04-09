@@ -108,7 +108,6 @@ st.markdown("""
         font-size: 16px !important;
     }
     
-    /* Chat styling for mobile */
     .stChatMessage {
         background: #1a1a1a !important;
         border: 1px solid #333 !important;
@@ -120,7 +119,6 @@ st.markdown("""
         color: #fff !important;
     }
     
-    /* Sticky bottom contact bar */
     .sticky-contact {
         position: fixed;
         bottom: 0;
@@ -158,14 +156,6 @@ st.markdown("""
         margin: 20px 0;
         border: 1px solid #333;
     }
-    .chat-header {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -181,10 +171,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Quick Value Prop
+# Quick Value Prop - Updated text here
 st.markdown("""
 <p style="text-align: center; font-size: 18px; margin: 20px 0; color: #ddd;">
-    Secure storage for RVs, Boats & Containers<br>
+    Secure storage for RVs, Boats, Trucks & Trailers<br>
     <span style="color: #fff; font-weight: bold;">Ontario's Trusted Choice</span>
 </p>
 """, unsafe_allow_html=True)
@@ -197,20 +187,19 @@ with st.form("quick_inquiry", clear_on_submit=True):
     phone = st.text_input("Phone Number", placeholder="(555) 123-4567")
     
     asset = st.selectbox("What are you storing?",
-                        ["Select...", "RV / Motorhome", "Boat", "Shipping Container", 
+                        ["Select...", "RV / Motorhome", "Boat", 
                          "Commercial Truck", "Car / Trailer"],
                         index=0)
     
     size = st.select_slider("Size",
-                           options=["Small", "Medium", "Large", "XL"],
+                           options=["Small", "Medium", "Large"],
                            value="Medium")
     
     months = st.number_input("How many months?", 
                             min_value=1, max_value=24, value=6)
     
-    # Instant quote calculation
     if asset != "Select...":
-        rates = {"Small": 70, "Medium": 95, "Large": 125, "XL": 160, "Container": 180}
+        rates = {"Small": 70, "Medium": 95, "Large": 125}
         base = rates.get(size, 95)
         if months >= 12:
             base = int(base * 0.85)
@@ -236,7 +225,6 @@ with st.form("quick_inquiry", clear_on_submit=True):
             conn.commit()
             conn.close()
             
-            # Send email
             try:
                 sender = st.secrets.get("smtp_email", "your-email@gmail.com")
                 pwd = st.secrets.get("smtp_password", "your-password")
@@ -266,8 +254,6 @@ with st.expander("View Full Pricing"):
     **Small** (0-20ft): $60-80/mo  
     **Medium** (21-30ft): $80-110/mo  
     **Large** (31-40ft): $110-140/mo  
-    **XL** (41-50ft): $140-180/mo  
-    **Container**: $180-250/mo  
     
     *Winter storage (Oct-Apr): +25%*  
     *12-month prepay: 15% off*
@@ -286,31 +272,26 @@ st.markdown("""
 st.markdown("---")
 st.markdown("### Chat with Sally")
 
-# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "Hi! I'm Sally. Ask me about sizes, pricing, or availability!"}
     ]
 
-# Display chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-# Chat input
 if prompt := st.chat_input("Ask Sally..."):
-    # Add user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
     
-    # Simple Sally logic (no API needed for basic responses)
     prompt_lower = prompt.lower()
     
     if "price" in prompt_lower or "cost" in prompt_lower or "rate" in prompt_lower:
-        response = "Our rates start at $60/month for small units and go up to $250 for large containers. Winter months (Oct-Apr) have a 25% premium. How big is your vehicle?"
+        response = "Our rates start at $60/month for small units and go up to $140 for large units. Winter months (Oct-Apr) have a 25% premium. How big is your vehicle?"
     elif "size" in prompt_lower or "big" in prompt_lower or "fit" in prompt_lower:
-        response = "We accommodate everything from compact cars to 50ft+ containers. Our spots are sized: Small (0-20ft), Medium (21-30ft), Large (31-40ft), and XL (40ft+). What are you storing?"
+        response = "We accommodate everything from compact cars to large RVs up to 40ft. Our spots are sized: Small (0-20ft), Medium (21-30ft), and Large (31-40ft). What are you storing?"
     elif "available" in prompt_lower or "spot" in prompt_lower or "now" in prompt_lower:
         response = f"We currently have spots open! Call me at {FORMATTED_PHONE} or WhatsApp {WHATSAPP_NUMBER} for immediate availability. I can hold a spot for 24 hours with a deposit."
     elif "electric" in prompt_lower or "power" in prompt_lower:
@@ -322,7 +303,6 @@ if prompt := st.chat_input("Ask Sally..."):
     else:
         response = f"I'm here to help! For the fastest response, call me at {FORMATTED_PHONE} or WhatsApp {WHATSAPP_NUMBER}. You can also fill out the quote form above and I'll call you back within 10 minutes."
     
-    # Add assistant response
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.write(response)
