@@ -106,8 +106,4 @@ if prompt := st.chat_input("Ask a quick question..."):
     with st.chat_message("user"):
         st.write(prompt)
     
-    storage_info = {"rv": "RV: $150/mo", "bus": "Bus: $200/mo", "boat": "Boat: $120/mo", "container": "Container: $100/mo"}
-    ans = "For detailed pricing or custom quotes, please use the Official Inquiry form above!"
-    
-    for key in storage_info:
-        if key in prompt.lower():
+    storage_info = {"rv": "RV: $150/mo", "bus": "Bus: $200/mo", "boat
