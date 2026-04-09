@@ -37,7 +37,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Geometric Prestige "P" Crest (No Lion)
+# 3. Geometric Prestige "P" Crest
 st.markdown("""
 <div class='logo-container'>
     <svg width="150" height="150" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -62,11 +62,11 @@ with st.form("contact_form", clear_on_submit=True):
     
     msg = st.text_area("What are you looking to store? (RV, Boat, Containers, etc.)")
     
-    submit_button = st.form_submit_button("SUBMIT TO GREG")
+    # Changed from "SUBMIT TO GREG" to just "SUBMIT"
+    submit_button = st.form_submit_button("SUBMIT")
 
     if submit_button:
         if name and email and msg:
-            # We use the standard endpoint to ensure maximum compatibility with Gmail
             form_data = {
                 "name": name,
                 "email": email,
@@ -74,41 +74,11 @@ with st.form("contact_form", clear_on_submit=True):
                 "_subject": f"New Prestige Inquiry from {name}"
             }
             try:
+                # Standard endpoint for reliability
                 response = requests.post("https://formsubmit.co/greguhl33@gmail.com", data=form_data)
                 if response.status_code == 200:
-                    st.success("✅ Inquiry Sent! Greg will review this and get back to you.")
-                    st.info("Note: If this is your first time, check your email to confirm the FormSubmit activation.")
+                    st.success("✅ Inquiry Sent! We will review this and get back to you shortly.")
                 else:
                     st.error("There was an issue sending your inquiry. Please try again.")
             except:
-                st.error("Connection error. Please check your internet and try again.")
-        else:
-            st.warning("Please fill out all fields before submitting.")
-
-st.divider()
-
-# 5. Smart Chatbot
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "How can I help you with your storage needs today?"}]
-
-for m in st.session_state.messages:
-    with st.chat_message(m["role"]):
-        st.write(m["content"])
-
-if prompt := st.chat_input("Ask a question..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-    
-    # Automated Logic
-    user_query = prompt.lower()
-    if any(word in user_query for word in ["price", "cost", "rate", "how much"]):
-        reply = "Our rates depend on the size of the vehicle or unit. Generally, RVs start at $150/mo and Boats at $120/mo. Please use the form above for a custom quote!"
-    elif any(word in user_query for word in ["location", "where"]):
-        reply = "We are located in the Niagara region. Submit an inquiry for the exact address and availability!"
-    else:
-        reply = "I'm here to help! For specific availability or to book a spot, please fill out the inquiry form above so Greg can contact you directly."
-
-    with st.chat_message("assistant"):
-        st.write(reply)
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+                st.error("Connection error
