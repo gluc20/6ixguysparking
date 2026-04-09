@@ -1,9 +1,11 @@
 import streamlit as st
 import requests
 
+# Page setup - this replaces the <head> tags you were drafting
 st.set_page_config(page_title="PRESTIGE ENTERPRISES", page_icon="🦁", layout="centered")
 
 # --- CSS STYLE & ANIMATIONS ---
+# Note: Triple quotes must be closed with """, ensuring no extra spaces follow them.
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&display=swap');
@@ -28,12 +30,11 @@ st.markdown("""
     .eye { fill: #ffffff; }
     .nose { fill: #2a2a2a; stroke: #ffffff; stroke-width: 2; }
     .detail { stroke: #666; stroke-width: 1.5; fill: none; opacity: 0.6; }
-    
     .lion-svg { filter: drop-shadow(0 0 25px rgba(255,255,255,0.1)); }
 </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER WITH LEO MAGNUS ---
+# --- HEADER WITH LEO MAGNUS LOGO ---
 st.markdown("""
 <div class='lion-container'>
     <svg class="lion-svg" width="320" height="320" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
