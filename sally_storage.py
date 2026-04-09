@@ -4,26 +4,35 @@ import sqlite3
 import json
 import base64
 import uuid
-import re
 import os
-import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from openai import OpenAI
-from PIL import Image
-import io
+
+# Try to import OpenAI, but don't crash if it's missing
+try:
+    from openai import OpenAI
+    client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", "demo-key")))
+    AI_AVAILABLE = True
+except ImportError:
+    AI_AVAILABLE = False
+    client = None
+
+# Try to import PIL
+try:
+    from PIL import Image
+    import io
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 # ==================== CONFIGURATION ====================
 st.set_page_config(
     page_title="PRESTIGE ENTERPRISES | Premium Storage Solutions",
-    page_icon="🏢",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
-
-# Initialize OpenAI (set your API key in Streamlit secrets or environment)
-client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", "your-key-here")))
 
 # Database setup
 DB_PATH = "prestige_memory.db"
@@ -122,11 +131,11 @@ init_db()
 def calculate_quote(category, duration_months, season="standard", addons=None, fleet_size=1):
     """Dynamic pricing calculator"""
     base_rates = {
-        'small': 70,      # Cars, small trailers
-        'medium': 95,     # Boats, vans
-        'large': 125,     # RVs
-        'xl': 160,        # Large trucks
-        'container': 215  # Shipping containers
+        'small': 70,
+        'medium': 95,
+        'large': 125,
+        'xl': 160,
+        'container': 215
     }
     
     if category not in base_rates:
@@ -185,16 +194,19 @@ def send_inquiry_email(name, email, phone, asset_type, dimensions, duration, mes
     try:
         sender = st.secrets.get("smtp_email", "prestige.inquiries@gmail.com")
         password = st.secrets.get("smtp_password", "your-app-password")
-        receiver = "greguhl33@gmail.com"  # Owner email
+        receiver = "greguhl33@gmail.com"
         
         msg = MIMEMultipart()
         msg['From'] = sender
         msg['To'] = receiver
-        msg['Subject'] = f"🚛 NEW INQUIRY: {name} - {asset_type or 'General'}"
+        msg['Subject'] = "NEW INQUIRY: {} - {}".format(name, asset_type or 'General')
         
-        quote_text = f"<p><strong>Estimated Quote:</strong> ${quote['total_duration']} (${quote['total_monthly']}/mo)</p>" if quote else ""
+        quote_text = ""
+        if quote:
+            quote_text = "<p><strong>Estimated Quote:</strong> ${} (${}/mo)</p>".format(
+                quote['total_duration'], quote['total_monthly'])
         
-        body = f"""
+        body = """
         <html>
         <body style="font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px;">
             <div style="max-width: 600px; background: white; padding: 30px; border-left: 5px solid #000;">
@@ -202,43 +214,49 @@ def send_inquiry_email(name, email, phone, asset_type, dimensions, duration, mes
                 <h3 style="color: #333;">New Storage Inquiry Received</h3>
                 
                 <table style="width: 100%; border-collapse: collapse;">
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Name:</strong></td><td>{name}</td></tr>
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td>{email}</td></tr>
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Phone:</strong></td><td>{phone}</td></tr>
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Asset Type:</strong></td><td>{asset_type or 'Not specified'}</td></tr>
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Dimensions:</strong></td><td>{dimensions or 'Not specified'}</td></tr>
-                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Duration:</strong></td><td>{duration or 'Not specified'} months</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Name:</strong></td><td>{}</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td>{}</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Phone:</strong></td><td>{}</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Asset Type:</strong></td><td>{}</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Dimensions:</strong></td><td>{}</td></tr>
+                    <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Duration:</strong></td><td>{} months</td></tr>
                 </table>
                 
-                {quote_text}
+                {}
                 
                 <h4 style="margin-top: 20px;">Message:</h4>
-                <p style="background: #f9f9f9; padding: 15px; border-left: 3px solid #ccc;">{message}</p>
+                <p style="background: #f9f9f9; padding: 15px; border-left: 3px solid #ccc;">{}</p>
                 
                 <p style="margin-top: 30px; font-size: 12px; color: #666;">
-                    Received: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br>
-                    <a href="mailto:{email}?subject=Re: Your Storage Inquiry">Reply to customer</a>
+                    Received: {}<br>
+                    <a href="mailto:{}?subject=Re: Your Storage Inquiry">Reply to customer</a>
                 </p>
             </div>
         </body>
         </html>
-        """
+        """.format(name, email, phone, asset_type or 'Not specified', 
+                   dimensions or 'Not specified', duration or 'Not specified',
+                   quote_text, message, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), email)
         
         msg.attach(MIMEText(body, 'html'))
         
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender, password)
-        server.sendmail(sender, receiver, msg.as_string())
+        text = msg.as_string()
+        server.sendmail(sender, receiver, text)
         server.quit()
         
-        return True, "Inquiry sent successfully! We'll contact you within 24 hours."
+        return True, "Inquiry sent successfully. We'll contact you within 24 hours."
     except Exception as e:
-        return False, f"Email error: {str(e)}"
+        return False, "Email error: {}".format(str(e))
 
 # ==================== AI VISION ANALYSIS ====================
 def analyze_vehicle_image(image_file):
     """Analyze uploaded vehicle image"""
+    if not AI_AVAILABLE or not PIL_AVAILABLE:
+        return None
+    
     try:
         image = Image.open(image_file)
         buffered = io.BytesIO()
@@ -255,7 +273,7 @@ def analyze_vehicle_image(image_file):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_str}"}}
+                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,{}".format(img_str)}}
                     ]
                 }
             ],
@@ -294,13 +312,13 @@ def get_predictive_warning(asset_type):
     
     if spots < 20:
         urgency = 50
-        warnings.append(f"⚠️ Only ~{spots} {asset_type} spots remain for {month_key}")
+        warnings.append("ALERT: Only ~{} {} spots remain for {}".format(spots, asset_type, month_key))
     
     if asset_type == 'rv' and data[6] == 'winter_peak':
-        warnings.append("🚨 Winter storage rush: Book today to avoid waitlist")
+        warnings.append("URGENT: Winter storage rush. Book today to avoid waitlist.")
     
     if asset_type == 'boat' and data[6] == 'summer_peak':
-        warnings.append("🚢 Peak boating season: 95% capacity on weekends")
+        warnings.append("PEAK SEASON: 95% capacity on weekends historically.")
     
     return {'urgency': urgency, 'warnings': warnings, 'spots_left': spots}
 
@@ -313,6 +331,7 @@ def get_user_memory(user_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     user = c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    conn.close()
     
     if user:
         last_date = datetime.fromisoformat(user[6]) if user[6] else None
@@ -339,14 +358,14 @@ def update_memory(user_id, **kwargs):
     fields = []
     values = []
     for key, val in kwargs.items():
-        fields.append(f"{key} = ?")
+        fields.append("{} = ?".format(key))
         values.append(val)
     
     fields.append("last_visit = ?")
     values.append(now)
     values.append(user_id)
     
-    c.execute(f"UPDATE users SET {', '.join(fields)} WHERE user_id = ?", values)
+    c.execute("UPDATE users SET {} WHERE user_id = ?".format(', '.join(fields)), values)
     
     if c.rowcount == 0:
         c.execute('INSERT INTO users (user_id, created_at) VALUES (?, ?)', (user_id, now))
@@ -478,27 +497,27 @@ def main():
     # Header with PP Logo
     st.markdown('<div class="pp-logo"><span>P</span><span>P</span></div>', unsafe_allow_html=True)
     st.markdown('<div class="main-header">PRESTIGE ENTERPRISES</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Premium Outdoor Storage Solutions • Ontario</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Premium Outdoor Storage Solutions   Ontario</div>', unsafe_allow_html=True)
     
     # Sidebar - Special Powers
     with st.sidebar:
-        st.markdown("### 🧠 Sally AI Powers")
+        st.markdown("### Sally AI Powers")
         st.markdown("---")
         
         # Vision Upload
-        uploaded_file = st.file_uploader("📸 Upload Vehicle Photo", type=['jpg', 'png', 'jpeg'])
+        uploaded_file = st.file_uploader("Upload Vehicle Photo", type=['jpg', 'png', 'jpeg'])
         vision_data = None
         
         if uploaded_file:
             with st.spinner("Analyzing..."):
                 vision_data = analyze_vehicle_image(uploaded_file)
                 if vision_data:
-                    st.success(f"Detected: {vision_data['vehicle_type']}")
-                    st.info(f"Estimated: {vision_data['estimated_length_feet']}ft")
+                    st.success("Detected: {}".format(vision_data['vehicle_type']))
+                    st.info("Estimated: {}ft".format(vision_data['estimated_length_feet']))
                     st.session_state['vision_context'] = vision_data
         
         # Quick Calculator
-        st.markdown("### 🧮 Quick Quote")
+        st.markdown("### Quick Quote")
         asset_type = st.selectbox("Asset", ["RV", "Boat", "Container", "Truck", "Car"])
         size = st.select_slider("Size", options=["Small", "Medium", "Large", "X-Large"])
         months = st.slider("Duration (months)", 1, 12, 6)
@@ -508,15 +527,15 @@ def main():
         
         quote = calculate_quote(cat_map[size], months, season)
         if quote:
-            st.metric("Monthly Rate", f"${quote['total_monthly']}")
-            st.metric("Total Cost", f"${quote['total_duration']}")
+            st.metric("Monthly Rate", "${}".format(quote['total_monthly']))
+            st.metric("Total Cost", "${}".format(quote['total_duration']))
             if quote['savings'] > 0:
-                st.success(f"Save ${quote['savings']}!")
+                st.success("Save ${}!".format(quote['savings']))
         
         # Predictive Warning
         pred = get_predictive_warning(asset_type.lower())
         if pred and pred['warnings']:
-            st.markdown("### ⚠️ Availability Alert")
+            st.markdown("### Availability Alert")
             for w in pred['warnings']:
                 st.warning(w)
     
@@ -526,9 +545,10 @@ def main():
     with col1:
         # Welcome for returning users
         if user_memory and user_memory['is_returning']:
-            st.info(f"👋 Welcome back, {user_memory['name'] or 'valued client'}! Last time you were interested in {user_memory['last_asset']} storage.")
+            st.info("Welcome back, {}! Last time you were interested in {} storage.".format(
+                user_memory['name'] or 'valued client', user_memory['last_asset']))
         
-        st.markdown("### 📩 Storage Inquiry")
+        st.markdown("### Storage Inquiry")
         
         with st.form("inquiry_form"):
             c1, c2 = st.columns(2)
@@ -548,11 +568,12 @@ def main():
                 v = st.session_state['vision_context']
                 cat = v.get('size_category', 'medium')
                 auto_quote = calculate_quote(cat, duration, season)
-                st.success(f"AI Detected: {v['vehicle_type']} ({v['estimated_length_feet']}ft) - Estimated Category: {cat}")
+                st.success("AI Detected: {} ({}ft) - Estimated Category: {}".format(
+                    v['vehicle_type'], v['estimated_length_feet'], cat))
             
             message = st.text_area("Additional Details", placeholder="Tell us about access requirements, electrical needs, etc.")
             
-            submit = st.form_submit_button("SUBMIT INQUIRY →")
+            submit = st.form_submit_button("SUBMIT INQUIRY")
             
             if submit:
                 if name and email and asset:
@@ -574,7 +595,8 @@ def main():
                     if success:
                         st.success(msg)
                         # Save to memory
-                        update_memory(user_id, name=name, email=email, last_asset_type=asset, last_dimensions=dimensions, last_quote=final_quote['total_duration'])
+                        update_memory(user_id, name=name, email=email, last_asset_type=asset, 
+                                    last_dimensions=dimensions, last_quote=final_quote['total_duration'])
                         
                         # Save inquiry to DB
                         conn = sqlite3.connect(DB_PATH)
@@ -582,7 +604,8 @@ def main():
                         c.execute('''INSERT INTO inquiries 
                                      (name, email, phone, asset_type, dimensions, duration_months, estimated_quote, message)
                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                                  (name, email, phone, asset, dimensions, duration, final_quote['total_duration'], message))
+                                  (name, email, phone, asset, dimensions, duration, 
+                                   final_quote['total_duration'] if final_quote else None, message))
                         conn.commit()
                         conn.close()
                     else:
@@ -592,7 +615,7 @@ def main():
                     st.warning("Please fill in required fields (Name, Email, Asset Type)")
     
     with col2:
-        st.markdown("### 💰 2026 Pricing")
+        st.markdown("### 2026 Pricing")
         pricing_data = """
         **Small** (up to 20ft): $60-80/mo  
         **Medium** (21-30ft): $80-110/mo  
@@ -602,20 +625,20 @@ def main():
         
         ---
         **Add-ons:**
-        • Electricity: +$35/mo  
-        • 24/7 Access: +$17/mo  
-        • Premium Spot: +$22/mo
+        Electricity: +$35/mo  
+        24/7 Access: +$17/mo  
+        Premium Spot: +$22/mo
         
         ---
         **Seasonal:**
-        ❄️ Winter (Oct-Apr): +25%  
-        ☀️ Summer Discount: -10%
+        Winter (Oct-Apr): +25%  
+        Summer Discount: -10%
         """
         st.markdown(pricing_data)
         
-        if st.button("📋 Download Price Sheet"):
+        if st.button("Download Price Sheet"):
             st.download_button(
-                label="Click to Download PDF",
+                label="Click to Download",
                 data="Prestige Enterprises Pricing 2026\n\nStandard Rates...\n(Placeholder for actual PDF)",
                 file_name="prestige_pricing_2026.txt",
                 mime="text/plain"
@@ -624,12 +647,13 @@ def main():
     st.divider()
     
     # Chatbot Section
-    st.markdown("### 🤖 Chat with Sally")
+    st.markdown("### Chat with Sally")
     
     if "messages" not in st.session_state:
         welcome_msg = "Hello! I'm Sally, your AI storage consultant. I can analyze vehicle photos, calculate exact quotes, and check real-time availability. What are you storing today?"
         if user_memory and user_memory['is_returning']:
-            welcome_msg = f"Welcome back! Last time you were looking at {user_memory['last_asset']} storage. Shall we find you that spot?"
+            welcome_msg = "Welcome back! Last time you were looking at {} storage. Shall we find you that spot?".format(
+                user_memory['last_asset'])
         
         st.session_state.messages = [{"role": "assistant", "content": welcome_msg}]
     
@@ -647,30 +671,34 @@ def main():
         # Intent detection
         prompt_lower = prompt.lower()
         
-        # Simple response logic (extend with OpenAI for production)
+        # Simple response logic
         if "price" in prompt_lower or "cost" in prompt_lower:
             reply = "Our 2026 rates range from $60-250/month depending on size. Small units start at $60, RVs at $125, and containers at $180. Winter storage (Oct-Apr) carries a 25% premium due to demand. Would you like me to calculate a specific quote?"
         elif "available" in prompt_lower or "spot" in prompt_lower:
-            pred = get_predictive_warning('rv')  # Default check
+            pred = get_predictive_warning('rv')
             if pred and pred['urgency'] > 40:
-                reply = f"⚠️ High demand alert! We currently have limited spots. {pred['warnings'][0] if pred['warnings'] else ''} I recommend submitting an inquiry immediately to reserve."
+                reply = "High demand alert! We currently have limited spots. {} I recommend submitting an inquiry immediately to reserve.".format(
+                    pred['warnings'][0] if pred['warnings'] else '')
             else:
                 reply = "We have spots available! Submit an inquiry above and I'll hold one for 24 hours with a $50 deposit."
         elif "electric" in prompt_lower or "power" in prompt_lower:
             reply = "We offer battery trickle charging for $35/month. This is perfect for RVs and boats to maintain batteries during long-term storage."
         else:
-            # Fallback to OpenAI for complex queries
-            try:
-                context = f"User inquiry: {prompt}. User history: {user_memory}"
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are Sally from Prestige Enterprises. Be concise, professional, and push for form submission."},
-                        {"role": "user", "content": context}
-                    ]
-                )
-                reply = response.choices[0].message.content
-            except:
+            # Fallback to OpenAI for complex queries if available
+            if AI_AVAILABLE:
+                try:
+                    context = "User inquiry: {}. User history: {}".format(prompt, user_memory)
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are Sally from Prestige Enterprises. Be concise, professional, and push for form submission."},
+                            {"role": "user", "content": context}
+                        ]
+                    )
+                    reply = response.choices[0].message.content
+                except:
+                    reply = "For detailed questions, please fill out the inquiry form above or email greguhl33@gmail.com. I can also analyze a photo of your vehicle if you upload it in the sidebar!"
+            else:
                 reply = "For detailed questions, please fill out the inquiry form above or email greguhl33@gmail.com. I can also analyze a photo of your vehicle if you upload it in the sidebar!"
         
         with st.chat_message("assistant"):
@@ -679,3 +707,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
